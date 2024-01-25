@@ -15,9 +15,12 @@ import static java.lang.annotation.ElementType.PARAMETER;
 
 public class RandomReviewParameterResolverExtension implements ParameterResolver {
 
-  private static final List<String> badReviews = List.of("This book was shit I don't like it",
+  private static final List<String> badReviews = List.of(
+    "This book was shit I don't like it",
     "I was reading the book and I think the book is okay. I have read better books and I think I know what's good",
-    "Good book with good agenda and good example. I can recommend for everyone");
+    "Good book with good agenda and good example. I can recommend for everyone",
+    "This is shit!"
+  );
 
   @Retention(RetentionPolicy.RUNTIME)
   @Target(PARAMETER)
@@ -31,6 +34,7 @@ public class RandomReviewParameterResolverExtension implements ParameterResolver
 
   @Override
   public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-    return badReviews.get(ThreadLocalRandom.current().nextInt(0, badReviews.size()));
+    int randomIndex = ThreadLocalRandom.current().nextInt(0, badReviews.size());
+    return badReviews.get(randomIndex);
   }
 }
