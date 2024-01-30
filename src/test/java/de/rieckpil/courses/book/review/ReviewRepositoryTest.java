@@ -36,6 +36,11 @@ class ReviewRepositoryTest {
   @Autowired
   private TestEntityManager testEntityManager;
 
+  @BeforeEach
+  void beforEach() {
+    assertEquals(0, cut.count());
+  }
+
   @Test
   void notNull() throws SQLException {
     assertNotNull(entityManager);
@@ -61,5 +66,14 @@ class ReviewRepositoryTest {
 
   @Test
   void transactionalSupportTest() {
+    Review review = new Review();
+    review.setContent("This is a very nice book");
+    review.setTitle("About a book");
+    review.setRating(5);
+    review.setCreatedAt(LocalDateTime.now());
+    review.setBook(null);
+    review.setUser(null);
+
+    cut.save(review);
   }
 }
