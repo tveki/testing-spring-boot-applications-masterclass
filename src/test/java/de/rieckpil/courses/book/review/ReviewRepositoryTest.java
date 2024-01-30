@@ -38,6 +38,25 @@ class ReviewRepositoryTest {
 
   @Test
   void notNull() throws SQLException {
+    assertNotNull(entityManager);
+    assertNotNull(dataSource);
+    assertNotNull(cut);
+    assertNotNull(testEntityManager);
+
+    System.out.println("Database Product Name:");
+    System.out.println(dataSource.getConnection().getMetaData().getDatabaseProductName());
+
+    Review review = new Review();
+    review.setContent("This is a very nice book");
+    review.setTitle("About a book");
+    review.setRating(5);
+    review.setCreatedAt(LocalDateTime.now());
+    review.setBook(null);
+    review.setUser(null);
+
+    Review persisted = testEntityManager.persistFlushFind(review);
+
+    assertNotNull(persisted.getId());
   }
 
   @Test
