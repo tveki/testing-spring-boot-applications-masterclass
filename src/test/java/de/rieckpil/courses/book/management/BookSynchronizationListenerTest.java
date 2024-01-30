@@ -28,6 +28,7 @@ class BookSynchronizationListenerTest {
 
   @Test
   void shouldRejectBookWhenIsbnIsMalformed() {
+    when(bookRepository.findByIsbn("12345")).thenReturn(null);
   }
 
   @Test
