@@ -9,13 +9,16 @@ import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-  @Query(value =
-    "SELECT id, ratings, isbn, avg " +
-      "FROM books " +
-      "JOIN " +
-      "(SELECT book_id, ROUND(AVG(rating), 2) AS avg, COUNT(*) ratings FROM reviews group by book_id) AS statistics " +
-      "ON statistics.book_id = id;",
-    nativeQuery = true)
+  @Query(
+    value =
+      "SELECT id, ratings, isbn, avg " +
+        "FROM books " +
+        "JOIN " +
+        "(SELECT book_id, ROUND(AVG(rating), 2) AS avg, COUNT(*) ratings FROM reviews GROUP BY book_id) AS statistics " +
+        "ON statistics.book_id = id " +
+        "ORDER BY isbn;",
+    nativeQuery = true
+  )
   List<ReviewStatistic> getReviewStatistics();
 
   List<Review> findTop5ByOrderByRatingDescCreatedAtDesc();
