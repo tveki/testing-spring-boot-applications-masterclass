@@ -28,11 +28,15 @@ class BookSynchronizationListenerTest {
 
   @Test
   void shouldRejectBookWhenIsbnIsMalformed() {
-    when(bookRepository.findByIsbn("12345")).thenReturn(null);
+    BookSynchronization synchronization = new BookSynchronization("12345");
+    cut.consumeBookUpdates(synchronization);
+    verifyNoInteractions(bookRepository);
+    verifyNoInteractions(openLibraryApiClient);
   }
 
   @Test
   void shouldNotOverrideWhenBookAlreadyExists() {
+//    when(bookRepository.findByIsbn("1234567890000")).thenReturn(null);
   }
 
   @Test
