@@ -112,14 +112,14 @@ class ReviewControllerTest {
     mockMvc
       .perform(post("/api/books/{isbn}/reviews", 42)
         .contentType(MediaType.APPLICATION_JSON)
-        .contentType(payload)
+        .content(payload)
         .with(jwt().jwt(builder -> builder
           .claim("email", "duke@spring.io")
           .claim("preferred_username", "duke")
         )))
-      .andExpect(status().isOk())
+      .andExpect(status().isCreated())
       .andExpect(header().exists("Location"))
-      .andExpect(header().string("Location", Matchers.containsString("/book/42/reviews/84")));
+      .andExpect(header().string("Location", Matchers.containsString("/books/42/reviews/84")));
   }
 
   @Test
