@@ -81,7 +81,19 @@ class BookControllerTest {
       null
     );
 
-    when(bookManagementService.getAllBooks()).thenReturn(List.of(firstBook));
+    Book secondBook = createBook(
+      200L,
+      "234567",
+      "Blabla",
+      "Somebody",
+      null,
+      "",
+      100L,
+      null,
+      null
+    );
+
+    when(bookManagementService.getAllBooks()).thenReturn(List.of(firstBook, secondBook));
 
     mockMvc
       .perform(
@@ -90,9 +102,15 @@ class BookControllerTest {
       )
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.size()", is(1)))
-      .andExpect(jsonPath("$[0].isbn", is("123456")))
-      .andExpect(jsonPath("$[0].title", is("War and peace")));
+      .andExpect(jsonPath("$.size()", is(2)))
+
+      .andExpect(jsonPath("$[0].isbn", is(firstBook.getIsbn())))
+      .andExpect(jsonPath("$[0].title", is(firstBook.getTitle())))
+      .andExpect(jsonPath("$[0].id").doesNotExist())
+
+      .andExpect(jsonPath("$[1].isbn", is(secondBook.getIsbn())))
+      .andExpect(jsonPath("$[1].title", is(secondBook.getTitle())))
+      .andExpect(jsonPath("$[1].id").doesNotExist());
   }
 
   private Book createBook(Long id, String isbn, String title, String author, String description, String genre, Long pages, String publisher, String thumbnailUrl) {
