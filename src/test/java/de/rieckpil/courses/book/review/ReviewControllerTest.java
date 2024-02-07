@@ -34,20 +34,92 @@ class ReviewControllerTest {
 
   private ObjectMapper objectMapper;
 
+  @BeforeEach
+  public void beforeEach() {
+    objectMapper = new ObjectMapper();
+  }
+
   @Test
   void shouldReturnTwentyReviewsWithoutAnyOrderWhenNoParametersAreSpecified() throws Exception {
+
+    ArrayNode arrayNode = objectMapper.createArrayNode();
+
+    ObjectNode stat = objectMapper.createObjectNode();
+
+    stat.put("bookId", 1);
+    stat.put("isbn", "42");
+    stat.put("avg", 41.5);
+    stat.put("ratings", 3);
+
+    arrayNode.add(stat);
+
+    when(reviewService.getAllReviews(20, "none")).thenReturn(arrayNode);
+
+    mockMvc
+      .perform(get("/api/books/reviews"))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.size()", Matchers.is(1)));
   }
 
   @Test
   void shouldNotReturnReviewStatisticsWhenUserIsUnauthenticated() throws Exception {
+    mockMvc
+      .perform(get("/api/books/reviews/statistics"))
+      .andExpect(status().isUnauthorized());
+
+    verifyNoInteractions(reviewService);
   }
 
   @Test
+  @WithMockUser(username = "duke")
   void shouldReturnReviewStatisticsWhenUserIsAuthenticated() throws Exception {
+    mockMvc
+      .perform(get("/api/books/reviews/statistics"))
+      .andExpect(status().isOk());
+
+    verify(reviewService).getReviewStatistics();
+  }
+
+  @Test
+  void shouldReturnReviewStatisticsWhenUserIsAuthenticatedJwt() throws Exception {
+    mockMvc
+      .perform(get("/api/books/reviews/statistics")
+        .with(jwt()))
+      .andExpect(status().isOk());
+
+    verify(reviewService).getReviewStatistics();
   }
 
   @Test
   void shouldCreateNewBookReviewForAuthenticatedUserWithValidPayload() throws Exception {
+    String payload = """
+      {
+        "reviewTitle": "Blabla",
+        "reviewContent": "Something",
+        "rating": 4
+      }
+      """;
+
+    when(
+      reviewService.createBookReview(
+        eq("42"),
+        any(BookReviewRequest.class),
+        eq("duke"),
+        endsWith("spring.io")
+      )
+    ).thenReturn(84L);
+
+    mockMvc
+      .perform(post("/api/books/{isbn}/reviews", 42)
+        .contentType(MediaType.APPLICATION_JSON)
+        .contentType(payload)
+        .with(jwt().jwt(builder -> builder
+          .claim("email", "duke@spring.io")
+          .claim("preferred_username", "duke")
+        )))
+      .andExpect(status().isOk())
+      .andExpect(header().exists("Location"))
+      .andExpect(header().string("Location", Matchers.containsString("/book/42/reviews/84")));
   }
 
   @Test
