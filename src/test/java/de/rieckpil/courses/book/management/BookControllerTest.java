@@ -38,7 +38,6 @@ class BookControllerTest {
     mockMvc
       .perform(
         get("/api/books")
-          .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
           .accept(MediaType.APPLICATION_JSON)
       )
       .andExpect(
@@ -58,10 +57,42 @@ class BookControllerTest {
 
   @Test
   void shouldNotReturnXML() throws Exception {
+    mockMvc
+      .perform(
+        get("/api/books")
+          .accept(MediaType.APPLICATION_XML)
+      )
+      .andExpect(
+        status().isNotAcceptable()
+      );
   }
 
   @Test
   void shouldGetBooksWhenServiceReturnsBooks() throws Exception {
+    Book firstBook = createBook(
+      100L,
+      "123456",
+      "War and peace",
+      "Tolstoy",
+      null,
+      "",
+      500L,
+      null,
+      null
+    );
+
+    when(bookManagementService.getAllBooks()).thenReturn(List.of(firstBook));
+
+    mockMvc
+      .perform(
+        get("/api/books")
+          .accept(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(status().isOk())
+      .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.size()", is(1)))
+      .andExpect(jsonPath("$[0].isbn", is("123456")))
+      .andExpect(jsonPath("$[0].title", is("War and peace")));
   }
 
   private Book createBook(Long id, String isbn, String title, String author, String description, String genre, Long pages, String publisher, String thumbnailUrl) {
