@@ -10,6 +10,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.List;
 
@@ -32,6 +35,25 @@ class BookControllerTest {
 
   @Test
   void shouldGetEmptyArrayWhenNoBooksExists() throws Exception {
+    mockMvc
+      .perform(
+        get("/api/books")
+          .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+          .accept(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(
+        status().isOk()
+      )
+      .andExpect(
+        content().contentType(MediaType.APPLICATION_JSON)
+      )
+      .andExpect(
+        jsonPath("$.size()", is(0))
+      )
+      .andDo(
+        print()
+      )
+      .andReturn();
   }
 
   @Test
