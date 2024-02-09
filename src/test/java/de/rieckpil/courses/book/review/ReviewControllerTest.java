@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ReviewController.class)
@@ -124,14 +125,43 @@ class ReviewControllerTest {
 
   @Test
   void shouldRejectNewBookReviewForAuthenticatedUsersWithInvalidPayload() throws Exception {
+    String payload = """
+      {
+        "reviewContent": "Something",
+        "rating": -2
+      }
+      """;
+
+    mockMvc
+      .perform(post("/api/books/{isbn}/reviews", 42)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(payload)
+        .with(jwt().jwt(builder -> builder
+          .claim("email", "duke@spring.io")
+          .claim("preferred_username", "duke")
+        )))
+      .andExpect(status().isBadRequest())
+      .andDo(print());
   }
 
   @Test
   void shouldNotAllowDeletingReviewsWhenUserIsAuthenticatedWithoutModeratorRole() throws Exception {
+    mockMvc
+      .perform(delete("/api/books/{isbn}/reviews/{reviewId}", 42, 3)
+        .with(jwt()))
+      .andExpect(status().isForbidden());
+
+    verifyNoInteractions(reviewService);
   }
 
   @Test
   @WithMockUser(roles = "moderator")
   void shouldAllowDeletingReviewsWhenUserIsAuthenticatedAndHasModeratorRole() throws Exception {
+    mockMvc
+      .perform(delete("/api/books/{isbn}/reviews/{reviewId}", 42, 3)
+        .with(jwt()))
+      .andExpect(status().isOk());
+
+    verify(reviewService).deleteReview("42", 3L);
   }
 }
